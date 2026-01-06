@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOCIOLOBAS 2026 - Immersive Learning</title>
+    
+    <!-- 1. TAILWIND CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. REACT FRAMEWORK -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- 3. ICONS -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- 4. CONFIG -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        serif: ['Playfair Display', 'serif'], 
+                    },
+                    animation: {
+                        'spin-slow': 'spin 8s linear infinite',
+                        'float': 'float 8s ease-in-out infinite',
+                        'pulse-glow': 'pulse-glow 4s infinite',
+                        'pop-in': 'pop-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'confetti': 'confetti 1s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        'pulse-glow': {
+                            '0%, 100%': { boxShadow: '0 0 15px rgba(16, 185, 129, 0.05)' },
+                            '50%': { boxShadow: '0 0 30px rgba(16, 185, 129, 0.2)' },
+                        },
+                        'pop-in': {
+                            '0%': { transform: 'scale(0.95)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+
+    <style>
+        body { background-color: #020617; color: #e2e8f0; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        
+        /* Glass Cyber Effect - Refined */
+        .glass-cyber {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .neon-text { text-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- ICON HELPER ---
+        const Icon = ({ name, size = 24, className, ...props }) => {
+            React.useEffect(() => { if (window.lucide) window.lucide.createIcons(); });
+            return <i data-lucide={name} className={className} style={{ width: size, height: size, display: 'inline-block' }} {...props}></i>;
+        };
+
+        // --- PROFIL PAK GELAR ---
+        const AUTHOR_IMG = "https://lh3.googleusercontent.com/a/ACg8ocInpKkQyPXalja6EszdZN2yrRtxsBuhf6FlQFIIpAjOKEtpSfs=s494-c-no";
+
+        // --- DATA MATERI ---
+        const MISSIONS = [
+            {
+                id: 1,
+                title: "SIAPA SANG AKTOR?",
+                subtitle: "RTK & RTP: Dua Wajah Manusia",
+                desc: "Memahami peran ganda manusia sebagai Konsumen & Penyedia.",
+                icon: "users",
+                color: "emerald",
+                teacherNote: "Ingat, RTK adalah Raja (beli barang) sekaligus Pelayan (kerja di pabrik). Tanpa RTK, pabrik mati.",
+                steps: [
+                    {
+                        id: 'materi', label: 'PELAJARI', icon: 'book-open',
+                        content: {
+                            videos: [
+                                { title: "Siapa Pelaku Ekonomi?", url: "https://www.youtube.com/embed/EmQNGB4nPAs" }
+                            ],
+                            slides: [
+                                { url: "https://images.unsplash.com/photo-1589758438368-0ad531db3366?w=600&q=80", caption: "Pagi: Ayah Bekerja di Pabrik (RTP)" },
+                                { url: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&q=80", caption: "Sore: Ayah Belanja di Pasar (RTK)" }
+                            ]
+                        }
+                    },
+                    {
+                        id: 'aktivitas', label: 'SIMULASI', icon: 'activity', type: 'drag-drop',
+                        instruction: "Pindahkan aset yang dimiliki RTK ke dalam kotaknya (Klik item untuk memindahkan)!",
+                        items: ["Tenaga Kerja", "Tanah/Lahan", "Modal Uang", "Skill"]
+                    },
+                    {
+                        id: 'refleksi', label: 'RENUNGAN', icon: 'lightbulb',
+                        prompt: "Bayangkan jika semua orang di dunia ini HANYA ingin jadi Konsumen (Membeli) tapi TIDAK ADA yang mau bekerja (Produksi). Apa yang terjadi pada rak toko?"
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "JANTUNG EKONOMI",
+                subtitle: "Circular Flow: Aliran Darah",
+                desc: "Menganalisis aliran uang & barang. Jika berhenti, ekonomi mati.",
+                icon: "repeat",
+                color: "cyan",
+                teacherNote: "Ekonomi seperti aliran darah. Uang harus mengalir balik ke pabrik agar pabrik bisa gaji karyawan lagi.",
+                steps: [
+                    {
+                        id: 'materi', label: 'PELAJARI', icon: 'book-open',
+                        content: {
+                            videos: [
+                                { title: "Circular Flow Diagram", url: "https://www.youtube.com/embed/j4-LiKTn7LM" }
+                            ]
+                        }
+                    },
+                    {
+                        id: 'aktivitas', label: 'ROLEPLAY', icon: 'gamepad-2', type: 'roleplay_game', // Changed to GAME
+                        instruction: "Mainkan simulasi pasar ini! Ambil keputusan yang tepat agar ekonomi tetap berputar.",
+                        gameData: [
+                            {
+                                question: "Pabrik Sepatu (RTP) baru buka dan butuh pegawai. Kamu (RTK) butuh uang. Apa yang kamu lakukan?",
+                                options: [
+                                    { label: "Lamar Kerja (Jual Tenaga)", correct: true, feedback: "Tepat! Kamu memberikan Faktor Produksi (Tenaga) ke RTP." },
+                                    { label: "Diam saja di rumah", correct: false, feedback: "Salah. Ekonomi macet! Pabrik tidak bisa produksi tanpa tenaga kerja." }
+                                ]
+                            },
+                            {
+                                question: "Selamat! Kamu diterima kerja dan dapat Gaji (Uang). Sekarang kamu lapar. Apa tindakanmu?",
+                                options: [
+                                    { label: "Beli Beras (Belanja)", correct: true, feedback: "Bagus! Uang kembali ke RTP. Arus ekonomi berputar lancar!" },
+                                    { label: "Simpan semua uang", correct: false, feedback: "Hati-hati! Jika tidak ada yang belanja, pabrik bangkrut karena barang tidak laku." }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: 'refleksi', label: 'RENUNGAN', icon: 'lightbulb',
+                        prompt: "Uang jajanmu beli bakso -> Tukang bakso beli bensin -> Tukang bensin beli beras. Apakah uang itu pernah mati? Jelaskan!"
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "SANG WASIT",
+                subtitle: "Peran Negara & Luar Negeri",
+                desc: "Wasit ekonomi (Pemerintah) & perdagangan lintas negara.",
+                icon: "gavel",
+                color: "amber",
+                teacherNote: "Tanpa wasit, pemain bola bisa curang. Tanpa pemerintah, pabrik bisa buang limbah sembarangan.",
+                steps: [
+                    {
+                        id: 'materi', label: 'PELAJARI', icon: 'book-open',
+                        content: {
+                            videos: [
+                                { title: "Uang Pajak Buat Apa?", url: "https://www.youtube.com/embed/HuW3GjO-mO0" }
+                            ]
+                        }
+                    },
+                    {
+                        id: 'aktivitas', label: 'DEBAT', icon: 'message-circle', type: 'poll',
+                        instruction: "Topik Panas: Subsidi BBM dihapus atau dipertahankan? Berikan suaramu!",
+                        options: ["Hapus Subsidi (Alihkan ke Pendidikan)", "Pertahankan (Rakyat Butuh Murah)"]
+                    },
+                    {
+                        id: 'refleksi', label: 'RENUNGAN', icon: 'lightbulb',
+                        prompt: "Jalan aspal & sekolah negeri itu gratis dari pajak orang tuamu. Sudahkah kamu menjaganya?"
+                    }
+                ]
+            },
+            {
+                id: 4,
+                title: "DETEKTIF LINGKUNGAN",
+                subtitle: "Proyek Akhir Semester",
+                desc: "Mengungkap sisi gelap ekonomi terhadap alam.",
+                icon: "search",
+                color: "rose",
+                teacherNote: "Setiap rupiah yang kamu belanjakan adalah 'VOTE'. Jangan dukung perusak alam.",
+                steps: [
+                    {
+                        id: 'materi', label: 'KASUS NYATA', icon: 'video',
+                        content: {
+                            videos: [
+                                { title: "Sungai Citarum & Limbah", url: "https://www.youtube.com/embed/2eR6iCq6pDk" }
+                            ]
+                        }
+                    },
+                    {
+                        id: 'aktivitas', label: 'PROYEK', icon: 'camera', type: 'upload',
+                        instruction: "Laporan 'Detektif Lingkungan'. Tunjukkan pelaku ekonomi di sekitarmu yang merusak/menjaga alam!"
+                    },
+                    {
+                        id: 'refleksi', label: 'KOMITMEN', icon: 'heart',
+                        prompt: "Mulai hari ini, bagaimana caramu menggunakan uang agar tidak menyakiti bumi?"
+                    }
+                ]
+            }
+        ];
+
+        const QUOTE_KUNTOWIJOYO = "Ilmu sosial bukan untuk menghafal kenyataan, tetapi untuk memahami dan memanusiakan kehidupan.";
+
+        // --- COMPONENTS ---
+
+        // 1. Footer Component (Refined)
+        const Footer = () => (
+            <div className="w-full py-8 text-center z-10 border-t border-white/5 mt-auto bg-[#020617]/80 backdrop-blur-md">
+                <div className="flex flex-col items-center justify-center gap-3">
+                    <div className="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-full border border-white/5 hover:bg-white/10 transition-all duration-500 group cursor-default">
+                        <div className="relative">
+                            <img 
+                                src={AUTHOR_IMG} 
+                                alt="Gelar Aulia" 
+                                className="w-10 h-10 rounded-full border border-emerald-500/30 shadow-md object-cover grayscale group-hover:grayscale-0 transition duration-500"
+                            />
+                            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#020617]"></div>
+                        </div>
+                        <div className="text-left">
+                            <p className="text-[10px] text-emerald-500/80 font-bold tracking-widest leading-none mb-1">CREATED BY</p>
+                            <p className="text-sm font-bold text-slate-200 tracking-wide leading-none group-hover:text-white transition">Gelar Aulia, S.Sos</p>
+                        </div>
+                    </div>
+                    <p className="text-[10px] text-slate-600 font-medium tracking-[0.2em] opacity-50">© 2026 SOCIOLOBAS SYSTEM</p>
+                </div>
+            </div>
+        );
+
+        // 2. Elegant Logo Component (New Design)
+        const ElegantLogo = ({ size = "normal" }) => (
+            <div className={`flex flex-col items-center justify-center ${size === "large" ? "my-10" : ""}`}>
+                <div className="relative group cursor-default">
+                    <div className="absolute -inset-4 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition duration-1000"></div>
+                    <div className="relative flex flex-col items-center gap-4">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0f172a] to-[#020617] flex items-center justify-center border border-white/10 shadow-2xl group-hover:border-emerald-500/30 transition duration-500">
+                            <Icon name="globe" size={32} className="text-emerald-500/80 group-hover:text-emerald-400 transition duration-500"/>
+                        </div>
+                        <div className="text-center">
+                            <h1 className="text-4xl font-black text-white tracking-tighter leading-none mb-1">
+                                SOCIO<span className="font-light text-emerald-500">LOBAS</span>
+                            </h1>
+                            <div className="flex items-center justify-center gap-2 opacity-60">
+                                <div className="h-[1px] w-8 bg-gradient-to-r from-transparent to-emerald-500"></div>
+                                <p className="text-[9px] text-emerald-400 tracking-[0.4em] font-medium">IMMERSIVE</p>
+                                <div className="h-[1px] w-8 bg-gradient-to-l from-transparent to-emerald-500"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // 3. Celebration Modal
+        const CelebrationModal = ({ onClose }) => (
+            <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+                <div className="absolute inset-0 bg-[#020617]/90 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
+                <div className="glass-cyber p-8 rounded-[2.5rem] max-w-sm w-full text-center relative animate-pop-in border border-emerald-500/20 shadow-2xl">
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 bg-gradient-to-b from-[#0f172a] to-[#020617] rounded-full flex items-center justify-center shadow-lg border border-emerald-500/20">
+                        <Icon name="award" size={48} className="text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.5)]"/>
+                    </div>
+                    <div className="mt-10">
+                        <h2 className="text-3xl font-black text-white mb-2 tracking-tight">LUAR BIASA!</h2>
+                        <div className="w-16 h-1 bg-emerald-500 mx-auto mb-4 rounded-full opacity-50"></div>
+                        <p className="text-sm text-slate-400 mb-8 leading-relaxed px-2 font-light">
+                            Kamu telah menyelesaikan misi ini dengan sangat baik. Teruslah berpikir kritis!
+                        </p>
+                        <div className="flex justify-center gap-2 mb-8 opacity-80">
+                            {[1,2,3].map(i => <Icon key={i} name="star" size={20} className="text-yellow-500 fill-yellow-500/20 animate-pulse" style={{animationDelay: `${i*0.2}s`}}/>)}
+                        </div>
+                        <button onClick={onClose} className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-900/20 transition-all transform hover:scale-[1.02] tracking-wide text-xs">
+                            LANJUT BELAJAR
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // --- BACKGROUND & MUSIC ---
+        const BackgroundParticles = () => (
+            <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-[#020617]">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+                <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-emerald-900/20 rounded-full mix-blend-screen filter blur-[120px] opacity-20 animate-float"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-cyan-900/20 rounded-full mix-blend-screen filter blur-[120px] opacity-20 animate-float" style={{animationDelay: '-2s'}}></div>
+            </div>
+        );
+
+        const ThemeSongPlayer = () => {
+            const [isPlaying, setIsPlaying] = useState(false);
+            const audioRef = useRef(null);
+            // Arcade style sound
+            const AUDIO_URL = "https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/theme_01.mp3"; 
+
+            const togglePlay = () => {
+                if (audioRef.current) {
+                    if (isPlaying) audioRef.current.pause();
+                    else audioRef.current.play().catch(e => console.log(e));
+                    setIsPlaying(!isPlaying);
+                }
+            };
+
+            return (
+                <div className="fixed bottom-6 right-6 z-40 animate-float">
+                    <audio ref={audioRef} src={AUDIO_URL} loop />
+                    <div onClick={togglePlay} className="glass-cyber p-2 pr-4 rounded-full flex items-center gap-3 cursor-pointer transition-all hover:scale-105 hover:border-emerald-500/30 group shadow-lg">
+                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-inner ${isPlaying ? 'animate-spin-slow' : ''}`}>
+                           <Icon name={isPlaying ? "volume-2" : "play"} size={16} />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[9px] font-bold text-emerald-400 tracking-widest uppercase group-hover:text-emerald-300">Soundtrack</span>
+                            <span className="text-[10px] font-bold text-slate-300">Arcade 8-Bit</span>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- DASHBOARDS ---
+
+        const TeacherDashboard = ({ onBack }) => {
+            return (
+                <div className="min-h-screen bg-[#020617] font-sans text-slate-200 relative w-full flex flex-col">
+                    <BackgroundParticles />
+                    
+                    <div className="glass-cyber sticky top-0 z-30 px-6 py-4 flex justify-between items-center shadow-lg mb-6 border-b border-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                <Icon name="bar-chart-2" size={20} />
+                            </div>
+                            <div>
+                                <h1 className="font-bold text-lg leading-none text-white tracking-tight">DASHBOARD GURU</h1>
+                                <p className="text-[10px] text-slate-400 mt-1 font-mono tracking-wider">MODE: SECURE</p>
+                            </div>
+                        </div>
+                        <button onClick={onBack} className="bg-red-500/10 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-500/20 transition">LOGOUT</button>
+                    </div>
+
+                    <div className="max-w-5xl mx-auto px-6 grid gap-6 relative z-10 flex-1 w-full">
+                        <div className="glass-cyber rounded-3xl p-8 border border-white/5 relative overflow-hidden">
+                           <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-2"><Icon name="book-open" className="text-emerald-400"/> MODUL AJAR</h2>
+                           <div className="space-y-6">
+                             {MISSIONS.map((misi) => (
+                               <div key={misi.id} className="bg-slate-900/60 border border-white/5 rounded-2xl p-6">
+                                 <div className="flex items-start gap-4">
+                                   <div className={`p-3 rounded-xl bg-${misi.color}-500/10 text-${misi.color}-400`}>
+                                     <Icon name={misi.icon} size={24}/>
+                                   </div>
+                                   <div className="flex-1">
+                                     <h3 className={`font-bold text-lg text-${misi.color}-400 mb-1`}>{misi.title}</h3>
+                                     <p className="text-sm text-slate-300 mb-4">{misi.subtitle}</p>
+                                     <div className="bg-amber-500/10 border-l-2 border-amber-500 p-4 rounded-r-xl mb-4">
+                                       <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest block mb-1">
+                                         PANDUAN GURU
+                                       </span>
+                                       <p className="text-xs text-slate-300 italic">"{misi.teacherNote}"</p>
+                                     </div>
+                                   </div>
+                                 </div>
+                               </div>
+                             ))}
+                           </div>
+                        </div>
+                    </div>
+                    <Footer />
+                </div>
+            );
+        };
+
+        const StudentModule = ({ mission, onBack }) => {
+            const [activeTab, setActiveTab] = useState('materi');
+            const [showPraise, setShowPraise] = useState(false);
+            
+            // State for Drag & Drop
+            const [dragItems, setDragItems] = useState(mission.steps.find(s => s.type === 'drag-drop')?.items || []);
+            const [droppedItems, setDroppedItems] = useState([]);
+
+            // State for Roleplay Game
+            const [gameStage, setGameStage] = useState(0);
+            const [gameFeedback, setGameFeedback] = useState(null);
+
+            const currentStep = mission.steps.find(s => s.id === activeTab) || mission.steps[0];
+
+            // Reset game when tab changes or mission opens
+            useEffect(() => {
+                setGameStage(0);
+                setGameFeedback(null);
+            }, [activeTab, mission]);
+
+            const handleDrop = (item) => {
+                setDragItems(dragItems.filter(i => i !== item));
+                setDroppedItems([...droppedItems, item]);
+                if (dragItems.length === 1) { 
+                    setTimeout(() => setShowPraise(true), 500);
+                }
+            };
+
+            const handlePoll = () => {
+                setTimeout(() => setShowPraise(true), 300);
+            };
+
+            // GAME LOGIC HANDLER
+            const handleGameChoice = (isCorrect, feedback, totalStages) => {
+                setGameFeedback({ isCorrect, text: feedback });
+                if (isCorrect) {
+                    setTimeout(() => {
+                        if (gameStage + 1 < totalStages) {
+                            setGameStage(s => s + 1);
+                            setGameFeedback(null);
+                        } else {
+                            setShowPraise(true); // Level Complete
+                        }
+                    }, 2000);
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-[#020617] font-sans flex flex-col relative overflow-hidden text-slate-200 w-full animate-pop-in">
+                    <BackgroundParticles />
+                    {showPraise && <CelebrationModal onClose={() => setShowPraise(false)} />}
+
+                    <div className="relative h-56 bg-gradient-to-b from-emerald-900 via-slate-900 to-[#020617] shrink-0 border-b border-emerald-500/20">
+                        <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-start z-10">
+                            <button onClick={onBack} className="w-10 h-10 glass-cyber rounded-full flex items-center justify-center text-white hover:bg-emerald-500/20 transition">
+                                <Icon name="arrow-left" size={20}/>
+                            </button>
+                            <div className="px-3 py-1 glass-cyber rounded-full text-[10px] font-bold text-emerald-400 uppercase tracking-widest border border-emerald-500/30">
+                                {mission.title.split(":")[0]}
+                            </div>
+                        </div>
+                        <div className="absolute bottom-14 left-6 right-6 z-10">
+                            <h1 className="text-2xl font-black text-white leading-tight drop-shadow-lg neon-text">{mission.subtitle}</h1>
+                            <p className="text-xs text-slate-400 mt-2 line-clamp-2">{mission.desc}</p>
+                        </div>
+                    </div>
+
+                    <div className="relative z-20 -mt-10 px-4 mb-4">
+                        <div className="glass-cyber p-1.5 rounded-2xl flex justify-between items-center shadow-2xl border border-white/5">
+                            {mission.steps.map(s => (
+                                <button 
+                                    key={s.id} 
+                                    onClick={() => setActiveTab(s.id)}
+                                    className={`flex-1 py-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all duration-300
+                                    ${activeTab === s.id ? `bg-emerald-600 text-white shadow-lg scale-105` : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                                >
+                                    <Icon name={s.icon} size={18}/>
+                                    <span className="text-[9px] font-bold tracking-widest">{s.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex-1 px-5 pb-32 overflow-y-auto space-y-6 relative z-10">
+                        
+                        <div className="bg-emerald-900/20 p-4 rounded-2xl border border-emerald-500/30 flex gap-3 items-start backdrop-blur-sm">
+                           <div className="bg-emerald-500/20 p-2 rounded-lg shrink-0">
+                             <Icon name="user" size={16} className="text-emerald-400"/>
+                           </div>
+                           <div>
+                             <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">Pesan Guru</p>
+                             <p className="text-xs text-emerald-100 italic leading-relaxed">"{mission.teacherNote}"</p>
+                           </div>
+                        </div>
+
+                        <div className="glass-cyber p-4 rounded-3xl border border-white/5">
+                           {activeTab === 'materi' && currentStep.content && (
+                             <div className="space-y-4">
+                               {currentStep.content.videos?.map((vid, idx) => (
+                                 <div key={idx} className="space-y-2">
+                                   <p className="text-xs font-bold text-slate-400 ml-2 uppercase flex items-center gap-2"><Icon name="video" size={12}/> {vid.title}</p>
+                                   <div className="aspect-video rounded-2xl overflow-hidden bg-black border border-slate-700 shadow-lg relative">
+                                     <iframe 
+                                        src={vid.url} 
+                                        className="absolute inset-0 w-full h-full" 
+                                        allowFullScreen
+                                        title={vid.title}
+                                     ></iframe>
+                                   </div>
+                                 </div>
+                               ))}
+                               {currentStep.content.maps?.map((map, idx) => (
+                                 <div key={idx} className="space-y-2 mt-4">
+                                   <p className="text-xs font-bold text-slate-400 ml-2 uppercase flex items-center gap-2"><Icon name="map" size={12}/> {map.title}</p>
+                                   <div className="aspect-video rounded-2xl overflow-hidden bg-black border border-emerald-700/50 shadow-lg relative">
+                                     <iframe 
+                                        src={map.url} 
+                                        className="absolute inset-0 w-full h-full" 
+                                        allowFullScreen
+                                        title={map.title}
+                                     ></iframe>
+                                   </div>
+                                 </div>
+                               ))}
+                               {currentStep.content.slides && (
+                                 <div className="grid grid-cols-2 gap-2 mt-4">
+                                   {currentStep.content.slides.map((slide, idx) => (
+                                     <div key={idx} className="relative rounded-xl overflow-hidden group">
+                                       <img src={slide.url} className="w-full h-24 object-cover" alt="slide"/>
+                                       <div className="absolute bottom-0 w-full bg-black/70 p-1 text-[9px] text-center text-white truncate">{slide.caption}</div>
+                                     </div>
+                                   ))}
+                                 </div>
+                               )}
+                             </div>
+                           )}
+
+                           {activeTab === 'aktivitas' && (
+                             <div className="text-center py-4">
+                                <div className="w-16 h-16 mx-auto bg-cyan-500/10 rounded-full flex items-center justify-center mb-4 border border-cyan-500/30 animate-pulse-glow">
+                                  <Icon name="activity" size={32} className="text-cyan-400"/>
+                                </div>
+                                <h3 className="text-lg font-bold text-white mb-2">Misi Interaktif</h3>
+                                <p className="text-sm text-slate-300 mb-6 px-4">{currentStep.instruction}</p>
+                                
+                                {currentStep.type === 'drag-drop' && (
+                                  <div className="space-y-4">
+                                    <div className="flex gap-2 justify-center flex-wrap">
+                                        {dragItems.map((item, i) => (
+                                            <button key={i} onClick={() => handleDrop(item)} className="bg-slate-800 px-3 py-1 rounded-full text-xs border border-slate-600 hover:border-cyan-400 hover:bg-slate-700 transition animate-float">{item}</button>
+                                        ))}
+                                    </div>
+                                    <div className="bg-slate-900/50 p-6 rounded-xl border-2 border-dashed border-emerald-500/50 min-h-[100px] flex flex-wrap gap-2 justify-center items-center relative">
+                                        {droppedItems.length === 0 && <span className="text-xs text-slate-600 absolute">KLIK ITEM DI ATAS</span>}
+                                        {droppedItems.map((item, i) => (
+                                            <span key={i} className="bg-emerald-900/50 text-emerald-300 px-3 py-1 rounded-full text-xs border border-emerald-500 animate-pop-in">{item}</span>
+                                        ))}
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {currentStep.type === 'poll' && (
+                                  <div className="space-y-2">
+                                    {currentStep.options.map((opt, i) => (
+                                      <button key={i} onClick={handlePoll} className="w-full py-3 bg-slate-800 rounded-xl text-xs font-bold hover:bg-cyan-600 hover:text-white transition border border-slate-700">
+                                        {opt}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* ROLEPLAY GAME */}
+                                {currentStep.type === 'roleplay_game' && (
+                                  <div className="w-full text-left space-y-4">
+                                    <div className="bg-slate-900/80 p-6 rounded-2xl border border-indigo-500/30 relative overflow-hidden">
+                                        {/* Progress Bar */}
+                                        <div className="absolute top-0 left-0 h-1 bg-indigo-500 transition-all duration-500" style={{width: `${((gameStage + 1) / currentStep.gameData.length) * 100}%`}}></div>
+                                        
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                                <Icon name="users" size={20}/>
+                                            </div>
+                                            <h4 className="font-bold text-white text-lg">Skenario {gameStage + 1}</h4>
+                                        </div>
+                                        
+                                        <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+                                            {currentStep.gameData[gameStage].question}
+                                        </p>
+
+                                        <div className="grid gap-3">
+                                            {currentStep.gameData[gameStage].options.map((opt, i) => (
+                                                <button 
+                                                    key={i}
+                                                    onClick={() => handleGameChoice(opt.correct, opt.feedback, currentStep.gameData.length)}
+                                                    disabled={gameFeedback !== null}
+                                                    className={`w-full p-4 rounded-xl text-left text-sm font-bold transition-all border 
+                                                    ${gameFeedback 
+                                                        ? (opt.correct ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' : 'bg-slate-800 border-slate-700 opacity-50')
+                                                        : 'bg-slate-800 border-slate-700 hover:bg-indigo-600 hover:border-indigo-500 text-white hover:scale-[1.02]'
+                                                    }`}
+                                                >
+                                                    {opt.label}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        {gameFeedback && (
+                                            <div className={`mt-4 p-3 rounded-lg text-xs font-bold text-center animate-pop-in ${gameFeedback.isCorrect ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                                                {gameFeedback.text}
+                                            </div>
+                                        )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {currentStep.type === 'upload' && (
+                                  <button onClick={handlePoll} className="w-full py-4 bg-slate-800 rounded-xl border border-dashed border-slate-600 flex flex-col items-center gap-2 hover:bg-slate-700 transition">
+                                    <Icon name="camera" size={24} className="text-slate-400"/>
+                                    <span className="text-xs font-bold text-slate-300">Upload Foto/Video</span>
+                                  </button>
+                                )}
+                             </div>
+                           )}
+
+                           {activeTab === 'refleksi' && (
+                             <div className="space-y-4">
+                               <div className="bg-amber-500/10 p-4 rounded-xl border border-amber-500/30">
+                                 <p className="text-lg text-amber-100 font-serif italic text-center">"{currentStep.prompt}"</p>
+                               </div>
+                               <textarea 
+                                 className="w-full h-40 bg-black/40 border border-slate-700 rounded-2xl p-4 text-sm focus:border-amber-500 focus:outline-none transition resize-none text-white"
+                                 placeholder="Tulis pemikiranmu di sini..."
+                               ></textarea>
+                               <button onClick={() => setShowPraise(true)} className="w-full py-3 bg-amber-600 rounded-xl font-bold text-black hover:bg-amber-500 transition shadow-lg">
+                                 SIMPAN JURNAL
+                               </button>
+                             </div>
+                           )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const StudentDashboard = ({ userName, onLogout, onSelectMission }) => {
+            const [greeting, setGreeting] = useState("");
+            const [bedtime, setBedtime] = useState(false);
+
+            useEffect(() => {
+                const h = new Date().getHours();
+                if (h >= 4 && h < 11) setGreeting("Selamat Pagi");
+                else if (h >= 11 && h < 15) setGreeting("Selamat Siang");
+                else if (h >= 15 && h < 18) setGreeting("Selamat Sore");
+                else setGreeting("Selamat Malam");
+
+                if (h >= 21 || h < 4) setBedtime(true);
+            }, []);
+
+            return (
+                <div className="min-h-screen bg-[#020617] font-sans relative text-white w-full flex flex-col">
+                    <BackgroundParticles />
+
+                    {bedtime && (
+                        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm animate-float">
+                           <div className="glass-cyber p-4 rounded-2xl border border-indigo-500/50 shadow-[0_0_30px_rgba(99,102,241,0.3)] flex gap-3 items-center bg-black/90">
+                              <div className="bg-indigo-600 p-2 rounded-full shrink-0 animate-pulse">
+                                <Icon name="moon" size={20} className="text-white"/>
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-indigo-300 text-sm">Sudah Larut Malam!</h4>
+                                <p className="text-xs text-slate-300">Istirahatlah, besok kita lanjut lagi ya! 🌙</p>
+                              </div>
+                              <button onClick={() => setBedtime(false)} className="ml-auto text-slate-500 hover:text-white"><Icon name="x" size={16}/></button>
+                           </div>
+                        </div>
+                    )}
+
+                    <div className="px-6 pt-8 pb-4 flex justify-between items-center relative z-10">
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-600 flex items-center justify-center text-white font-black text-xl shadow-[0_0_15px_rgba(16,185,129,0.5)] border border-white/20">
+                                {userName.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-0.5">{greeting}</p>
+                                <h1 className="text-lg font-black text-white truncate max-w-[150px]">{userName}</h1>
+                            </div>
+                        </div>
+                        <button onClick={onLogout} className="p-2 glass-cyber rounded-full text-slate-400 hover:text-red-400 transition"><Icon name="log-in" size={18}/></button>
+                    </div>
+
+                    <div className="px-6 mb-8 relative z-10 flex-1">
+                        <div className="glass-cyber rounded-[2rem] p-6 relative overflow-hidden border border-emerald-500/20 group">
+                           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition duration-500"></div>
+                           <div className="relative z-10 flex justify-between items-end">
+                             <div>
+                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">FASE D</p>
+                               <h2 className="text-2xl font-black text-white mb-4 neon-text">EKONOMI LESTARI</h2>
+                               <div className="flex gap-3">
+                                 <div className="bg-black/40 px-3 py-1.5 rounded-lg border border-white/10">
+                                   <span className="text-[9px] text-slate-400 block">XP</span>
+                                   <span className="text-sm font-bold text-emerald-400">850</span>
+                                 </div>
+                                 <div className="bg-black/40 px-3 py-1.5 rounded-lg border border-white/10">
+                                   <span className="text-[9px] text-slate-400 block">RANK</span>
+                                   <span className="text-sm font-bold text-amber-400">JUNIOR</span>
+                                 </div>
+                               </div>
+                             </div>
+                             <div className="w-16 h-16 rounded-full border-4 border-slate-800 flex items-center justify-center relative">
+                               <span className="text-xs font-bold text-emerald-400">50%</span>
+                             </div>
+                           </div>
+                        </div>
+                    </div>
+
+                    <div className="px-6 relative z-10 pb-10">
+                        <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><Icon name="map" size={16} className="text-emerald-400"/> PETA MISI</h3>
+                        <div className="space-y-4">
+                          {MISSIONS.map((m) => (
+                            <div key={m.id} onClick={() => onSelectMission(m)} className="glass-cyber p-1 rounded-2xl hover:bg-white/5 transition-all cursor-pointer group hover:scale-[1.02]">
+                              <div className="bg-slate-900/80 p-4 rounded-xl flex items-center gap-4 relative overflow-hidden">
+                                <div className={`absolute left-0 top-0 bottom-0 w-1 bg-${m.color}-500`}></div>
+                                <div className={`w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-${m.color}-400 group-hover:scale-110 transition duration-300 shadow-inner`}>
+                                  <Icon name={m.icon} size={20}/>
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-bold text-white text-sm group-hover:text-emerald-300 transition">{m.title}</h4>
+                                  <p className="text-[10px] text-slate-400 mt-0.5">{m.subtitle}</p>
+                                </div>
+                                <Icon name="chevron-right" size={16} className="text-slate-600 group-hover:text-white"/>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                    </div>
+                    <Footer />
+                </div>
+            );
+        };
+
+        const LandingPage = ({ onLogin }) => {
+            const [step, setStep] = useState(0); 
+            const [name, setName] = useState("");
+            const [pass, setPass] = useState("");
+            const [err, setErr] = useState("");
+
+            const handleTeacher = () => {
+                if(pass === "mapati77") onLogin('teacher');
+                else { setErr("AKSES DITOLAK"); setPass(""); }
+            };
+
+            return (
+                <div className="min-h-screen bg-[#020617] relative overflow-hidden flex flex-col font-sans text-white w-full">
+                    <BackgroundParticles />
+
+                    <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-8 text-center w-full">
+                        {step === 0 && (
+                            <div className="animate-float w-full max-w-sm flex flex-col items-center">
+                                <ElegantLogo size="large" />
+                                
+                                <p className="text-[10px] font-bold text-emerald-400 tracking-[0.3em] mb-4 mt-2">POTENSI EKONOMI LINGKUNGAN</p>
+                                <p className="text-xs text-slate-400 italic max-w-xs mx-auto mb-10 px-4 font-serif leading-relaxed opacity-80">"{QUOTE_KUNTOWIJOYO}"</p>
+                                
+                                <div className="space-y-3 w-full">
+                                    <button onClick={() => setStep(1)} className="w-full py-4 bg-white text-black rounded-2xl font-black shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:scale-[1.02] transition flex items-center justify-center gap-2">
+                                        <Icon name="user" size={18}/> MASUK SISWA
+                                    </button>
+                                    <button onClick={() => setStep(2)} className="w-full py-4 glass-cyber text-slate-300 border border-white/10 rounded-2xl font-bold hover:text-white transition flex items-center justify-center gap-2">
+                                        <Icon name="lock" size={18}/> MASUK GURU
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 1 && (
+                            <div className="w-full max-w-sm glass-cyber p-8 rounded-[2.5rem] border-t border-emerald-500/50 animate-pop-in">
+                                <h3 className="text-xl font-bold text-white mb-2">Identitas Siswa</h3>
+                                <p className="text-xs text-slate-400 mb-6">Masukkan nama panggilanmu</p>
+                                <input autoFocus type="text" className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-center font-bold text-emerald-400 focus:outline-none focus:border-emerald-500 transition mb-6" placeholder="NAMA..." value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && name.trim() && onLogin('student', name)}/>
+                                <div className="flex gap-2">
+                                    <button onClick={() => setStep(0)} className="p-3 rounded-xl bg-white/5 hover:bg-white/10"><Icon name="arrow-left" size={20}/></button>
+                                    <button disabled={!name.trim()} onClick={() => onLogin('student', name)} className="flex-1 bg-emerald-600 rounded-xl font-bold text-white shadow-lg disabled:opacity-50">MULAI</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 2 && (
+                            <div className="w-full max-w-sm glass-cyber p-8 rounded-[2.5rem] border-t border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.1)] animate-pop-in">
+                                <h3 className="text-xl font-bold text-white mb-2 text-red-400">Akses Guru</h3>
+                                <p className="text-xs text-slate-400 mb-6">Masukkan Kode Keamanan</p>
+                                <input autoFocus type="password" className="w-full bg-black/50 border border-red-500/30 rounded-xl px-4 py-3 text-center font-bold text-white focus:outline-none focus:border-red-500 transition mb-2" placeholder="PASSWORD..." value={pass} onChange={e => {setPass(e.target.value); setErr("")}} onKeyDown={e => e.key === 'Enter' && handleTeacher()}/>
+                                {err && <p className="text-[10px] text-red-500 font-bold mb-4">{err}</p>}
+                                <div className="flex gap-2 mt-4">
+                                    <button onClick={() => {setStep(0); setErr("")}} className="p-3 rounded-xl bg-white/5 hover:bg-white/10"><Icon name="arrow-left" size={20}/></button>
+                                    <button onClick={handleTeacher} className="flex-1 bg-gradient-to-r from-red-600 to-orange-600 rounded-xl font-bold text-white shadow-lg">BUKA</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <Footer />
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [view, setView] = useState('landing');
+            const [user, setUser] = useState("");
+            const [activeMission, setActiveMission] = useState(null);
+
+            const handleLogin = (role, name) => {
+                setUser(name || "Guru");
+                setView(role === 'teacher' ? 'teacher' : 'student');
+            };
+
+            return (
+                <div className="flex justify-center w-full min-h-screen">
+                    <div className="w-full md:max-w-[480px] bg-[#020617] md:shadow-[0_0_50px_rgba(16,185,129,0.1)] min-h-screen relative overflow-hidden border-x border-white/5 flex flex-col">
+                        {view === 'landing' && <LandingPage onLogin={handleLogin} />}
+                        {view === 'student' && !activeMission && <StudentDashboard userName={user} onLogout={() => setView('landing')} onSelectMission={setActiveMission} />}
+                        {view === 'student' && activeMission && <StudentModule mission={activeMission} onBack={() => setActiveMission(null)} />}
+                        {view === 'teacher' && <TeacherDashboard onBack={() => setView('landing')} />}
+                        {view !== 'landing' && <ThemeSongPlayer />}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
